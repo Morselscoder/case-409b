@@ -210,55 +210,66 @@
     }
 
     // Реалистичный механический автостоп кассетного магнитофона
+        // Реалистичный автостоп кассетного магнитофона (корпус + пружина + зажёв)
     function stopTapeWithClick() {
       if (!audioCtx || tapeStopped) return;
       tapeStopped = true;
       clearInterval(crackleInterval);
       const now = audioCtx.currentTime;
 
-      // 1. За 0.15 сек до щелчка мотор слегка замедляется ("тянет" плёнку вниз)
+      // 1. Лёгкое проседание скорости мотора перед остановкой
       if (humOsc) {
         humOsc.frequency.setValueAtTime(55, now);
-        humOsc.frequency.exponentialRampToValueAtTime(28, now + 0.14);
+        humOsc.frequency.exponentialRampToValueAtTime(22, now + 0.12);
       }
 
-      // 2. Механический удар кнопки STOP (двойной пластиково-пружинный стук из шума)
       if (!isMuted) {
-        const hitTime = now + 0.14;
-        const len = Math.floor(audioCtx.sampleRate * 0.08);
+        const hit = now + 0.11;
+
+        // 2. Глухой пластиковый удар корпуса ("ТУК")
+        const thudOsc = audioCtx.createOscillator();
+        const thudGain = audioCtx.createGain();
+        thudOsc.type = 'sine';
+        thudOsc.frequency.setValueAtTime(115, hit);
+        thudOsc.frequency.exponentialRampToValueAtTime(38, hit + 0.065);
+        thudGain.gain.setValueAtTime(0.75, hit);
+        thudGain.gain.exponentialRampToValueAtTime(0.001, hit + 0.065);
+        thudOsc.connect(thudGain);
+        thudGain.connect(audioCtx.destination);
+        thudOsc.start(hit);
+        thudOsc.stop(hit + 0.065);
+
+        // 3. Звонкий отстрел металлической пружины клавиши ("КЛАЦ" через 25 мс)
+        const snapTime = hit + 0.025;
+        const len = Math.floor(audioCtx.sampleRate * 0.018);
         const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
         const data = buf.getChannelData(0);
-
         for (let i = 0; i < len; i++) {
-          const t = i / audioCtx.sampleRate;
-          // Первый удар (срыв защёлки) + второй удар через 22мс (отстрел клавиши)
-          const env1 = Math.exp(-t * 160);
-          const env2 = t > 0.022 ? Math.exp(-(t - 0.022) * 140) * 0.85 : 0;
-          data[i] = (Math.random() * 2 - 1) * (env1 + env2);
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.2));
         }
+        const snapSrc = audioCtx.createBufferSource();
+        snapSrc.buffer = buf;
 
-        const clickSrc = audioCtx.createBufferSource();
-        clickSrc.buffer = buf;
+        const snapFilter = audioCtx.createBiquadFilter();
+        snapFilter.type = 'bandpass';
+        snapFilter.frequency.value = 2400;
+        snapFilter.Q.value = 2.0;
 
-        // Низкочастотный корпус кассетника (глухой пластиковый "тук")
-        const bodyFilter = audioCtx.createBiquadFilter();
-        bodyFilter.type = 'lowpass';
-        bodyFilter.frequency.value = 950;
+        const snapGain = audioCtx.createGain();
+        snapGain.gain.value = 0.85;
 
-        const clickGain = audioCtx.createGain();
-        clickGain.gain.value = 0.9;
-
-        clickSrc.connect(bodyFilter);
-        bodyFilter.connect(clickGain);
-        clickGain.connect(audioCtx.destination);
-        clickSrc.start(hitTime);
+        snapSrc.connect(snapFilter);
+        snapFilter.connect(snapGain);
+        snapGain.connect(audioCtx.destination);
+        snapSrc.start(snapTime);
       }
 
-      // 3. Мгновенное обрывание шипения ленты в момент удара клавиши
-      masterGain.gain.setValueAtTime(isMuted ? 0 : 0.18, now + 0.13);
-      masterGain.gain.linearRampToValueAtTime(0, now + 0.15);
+      // 4. Мгновенная гробовая тишина сразу после щелчка
+      masterGain.gain.setValueAtTime(isMuted ? 0 : 0.18, now + 0.11);
+      masterGain.gain.linearRampToValueAtTime(0, now + 0.13);
       statusText.textContent = 'TAPE STOPPED // END OF RECORDING';
     }
+
 
     // Запуск фонового шума плёнки
     function startTapeAudio() {
