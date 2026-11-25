@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CASE FILE NO. 409-B // JOSH J. TARVER</title>
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-desk: #121110;
+      --paper-bg: #e3dccb;
+      --ink: #1c1b18;
+      --stamp-red: #8f1d1d;
+      --folder-tab: #cbbd9f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-desk);
+      background-image: radial-gradient(circle at 50% 30%, #262320 0%, #0d0c0b 100%);
+      color: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      line-height: 1.55;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.75) 100%);
+      z-index: 100;
+    }
+
+    .folder-wrapper {
+      width: 100%;
+      max-width: 880px;
+      position: relative;
+      margin-top: 20px;
+    }
+
+    .folder-tab {
+      background-color: var(--folder-tab);
+      width: 310px;
+      padding: 8px 20px;
+      font-family: 'Special Elite', cursive;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.4);
+      position: relative;
+      top: 2px;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      color: #2b261d;
+    }
+
+    .dossier-sheet {
+      background-color: var(--paper-bg);
+      background-image: 
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        radial-gradient(ellipse at top left, rgba(255,255,255,0.4), transparent 70%),
+        radial-gradient(ellipse at bottom right, rgba(139, 115, 85, 0.25), transparent 70%);
+      background-size: 20px 20px, 20px 20px, 100% 100%, 100% 100%;
+      padding: 55px 55px 45px 55px;
+      box-shadow: 
+        0 20px 50px rgba(0,0,0,0.85),
+        inset 0 0 60px rgba(138, 121, 93, 0.35);
+      position: relative;
+      border: 1px solid #b5a88e;
+    }
+
+    /* Скрепка сдвинута правее ярлычка */
+    .paperclip {
+      position: absolute;
+      top: -22px;
+      left: 340px;
+      width: 26px;
+      height: 70px;
+      border: 3px solid #7a7d80;
+      border-radius: 15px;
+      z-index: 10;
+      box-shadow: 2px 4px 6px rgba(0,0,0,0.5);
+      transform: rotate(-5deg);
+    }
+    .paperclip::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 4px;
+      right: 4px;
+      bottom: 8px;
+      border: 2px solid #595c5e;
+      border-radius: 10px;
+    }
+
+    .stamp {
+      position: absolute;
+      top: 38px;
+      right: 45px;
+      color: var(--stamp-red);
+      border: 4px solid var(--stamp-red);
+      padding: 6px 14px;
+      font-family: 'Special Elite', cursive;
+      font-size: 1.25rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transform: rotate(7deg);
+      opacity: 0.82;
+      mix-blend-mode: multiply;
+      user-select: none;
+      text-align: center;
+      line-height: 1.1;
+    }
+    .stamp span {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    .doc-header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+      padding-right: 190px;
+    }
+
+    .doc-header h1 {
+      font-family: 'Special Elite', cursive;
+      font-size: 1.65rem;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 6px 20px;
+      font-size: 0.92rem;
+    }
+
+    .meta-label {
+      font-weight: bold;
+    }
+
+    .subject-overview {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 24px;
+      align-items: flex-start;
+    }
+
+    .polaroid {
+      background: #f4f1ea;
+      padding: 10px 10px 24px 10px;
+      box-shadow: 2px 5px 15px rgba(0,0,0,0.35);
+      transform: rotate(-2.5deg);
+      flex-shrink: 0;
+      width: 195px;
+      border: 1px solid #ccc4b4;
+      position: relative;
+    }
+
+    .polaroid::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%) rotate(2deg);
+      width: 65px;
+      height: 20px;
+      background: rgba(225, 215, 185, 0.65);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .photo-placeholder {
+      width: 100%;
+      height: 195px;
+      background: #141414;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #6e6a63;
+      text-align: center;
+      padding: 12px;
+      font-size: 0.75rem;
+      border: 1px solid #000;
+    }
+
+    .photo-placeholder::after {
+      content: "NO VISUAL RECORD\A[CORRUPTED]";
+      white-space: pre;
+      letter-spacing: 1px;
+    }
+
+    .polaroid-caption {
+      font-family: 'Special Elite', cursive;
+      font-size: 0.78rem;
+      text-align: center;
+      margin-top: 8px;
+      color: #333;
+    }
+
+    .subject-bio {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .subject-bio p {
+      margin-bottom: 12px;
+    }
+
+    .redacted {
+      background-color: #141414;
+      color: #141414;
+      padding: 0 4px;
+      border-radius: 1px;
+      cursor: help;
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+
+    .redacted:hover {
+      background-color: rgba(20, 20, 20, 0.15);
+      color: var(--stamp-red);
+      font-weight: bold;
+    }
+
+    .section-block {
+      margin-top: 28px;
+      padding-top: 22px;
+      border-top: 1px dashed rgba(28, 27, 24, 0.45);
+    }
+
+    .section-title {
+      font-family: 'Special Elite', cursive;
+      font-size: 1.15rem;
+      background: rgba(28, 27, 24, 0.08);
+      padding: 5px 10px;
+      margin-bottom: 14px;
+      display: inline-block;
+      border-left: 4px solid var(--ink);
+    }
+
+    p {
+      margin-bottom: 14px;
+      text-align: justify;
+    }
+
+    .inventory-box {
+      background: rgba(0, 0, 0, 0.045);
+      border: 1px solid rgba(28, 27, 24, 0.25);
+      padding: 16px 20px;
+      margin: 18px 0;
+    }
+
+    .inventory-box h4 {
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-decoration: underline;
+    }
+
+    .inventory-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 6px 18px;
+      font-size: 0.88rem;
+    }
+
+    .inventory-list li::before {
+      content: "[x] ";
+      font-weight: bold;
+    }
+
+    .witness-quote {
+      border-left: 3px solid var(--stamp-red);
+      padding: 10px 18px;
+      margin: 16px 0;
+      background: rgba(143, 29, 29, 0.05);
+      font-style: italic;
+    }
+
+    .doc-footer {
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 2px solid var(--ink);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      opacity: 0.75;
+    }
+
+    @media (max-width: 700px) {
+      .dossier-sheet {
+        padding: 35px 22px;
+      }
+      .doc-header {
+        padding-right: 0;
+        padding-top: 55px;
+      }
+      .stamp {
+        top: 20px;
+        right: 20px;
+        font-size: 1rem;
+      }
+      .paperclip {
+        left: auto;
+        right: 160px;
+      }
+      .subject-overview {
+        flex-direction: column;
+        align-items: center;
+      }
+      .polaroid {
+        transform: rotate(0deg);
+      }
+    }
+	    /* Стикер с QR-кодом как вещдок */
+    .evidence-qr-wrap {
+      margin-top: 32px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .evidence-qr {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: #f5f2eb;
+      border: 1px solid #b8ae99;
+      padding: 10px 14px;
+      box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.25);
+      transform: rotate(1.5deg);
+      position: relative;
+      text-decoration: none;
+      color: var(--ink);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .evidence-qr:hover {
+      transform: rotate(0deg) scale(1.03);
+      box-shadow: 3px 6px 16px rgba(143, 29, 29, 0.3);
+      border-color: var(--stamp-red);
+    }
+
+    /* Кусочек скотча сверху стикера */
+    .evidence-qr::before {
+      content: "";
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-2deg);
+      width: 55px;
+      height: 16px;
+      background: rgba(220, 210, 180, 0.75);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
+    .evidence-qr img {
+      width: 78px;
+      height: 78px;
+      display: block;
+      mix-blend-mode: multiply;
+      filter: contrast(1.2);
+    }
+
+    .qr-meta {
+      font-size: 0.74rem;
+      line-height: 1.35;
+      text-align: left;
+    }
+
+    .qr-meta strong {
+      display: block;
+      font-family: 'Special Elite', cursive;
+      color: var(--stamp-red);
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="folder-wrapper">
+    <div class="folder-tab">ARCHIVE // DEPT. OF HOMICIDE</div>
+    
+    <main class="dossier-sheet">
+      <div class="paperclip"></div>
+      
+      <div class="stamp">
+        SUSPENDED
+        <span>SUBJECT MISSING</span>
+      </div>
+
+      <header class="doc-header">
+        <h1>CASE FILE NO. 409-B</h1>
+        <div class="meta-grid">
+          <div><span class="meta-label">SUBJECT:</span> Tarver, Josh J.</div>
+          <div><span class="meta-label">DATE OPENED:</span> <span class="redacted" title="Classified">04/12</span>/199<span class="redacted">4</span></div>
+          <div><span class="meta-label">DOB:</span> <span class="redacted">3</span>/<span class="redacted">9</span>/19<span class="redacted">64</span></div>
+          <div><span class="meta-label">STATUS:</span> ACTIVE INVESTIGATION</div>
+        </div>
+      </header>
+
+      <section class="subject-overview">
+        <div class="polaroid">
+          <div class="photo-placeholder"></div>
+          <div class="polaroid-caption">FIG 1. TARVER, J. (199█)</div>
+        </div>
+
+        <div class="subject-bio">
+          <p><span class="meta-label">[EXTRACT FROM CASE RECORD]:</span> Criminal proceedings were initiated against civilian Josh J. Tarver on charges of first-degree murder, attempted murder, aggravated battery, unlawful practice of medicine, illegal possession of a firearm, and operating an illegal gambling establishment. <strong>All criminal charges and civil lawsuits were subsequently dismissed in court.</strong></p>
+          <p><span class="meta-label">DISTINGUISHING MARKS:</span> Severe craniofacial deformity, complete absence of ocular globes despite retained visual perception, multiple fractured teeth.</p>
+        </div>
+      </section>
+
+            <section>
+        <p>An infamous figure within the criminal underworld who built his reputation on unsettling honesty and pathological gambling associated with a game of his own design—a modified version of Russian Roulette played with a 12-gauge Remington 870 pump-action shotgun. He primarily operated out of a backroom in the <span class="redacted">BLACKWATER</span> nightclub (City of <span class="redacted">NEW HAVEN</span>), yet consistently evaded prosecution due to notarized General Release of Liability waivers signed voluntarily by participants who were effectively walking to their deaths.</p>
+        
+        <p>The exact nature of Tarver himself remains undetermined. Documented incidents confirm the subject has survived point-blank buckshot blasts to the head without utilizing the resuscitation equipment he personally installed for his players. Despite his grotesque appearance, the subject is noted to be remarkably polite, albeit largely taciturn.</p>
+        
+        <p>Those who perish during his games do not vanish without a trace: Tarver harvests blood from the deceased, categorizes it by blood type, and uses it as donor stock to resuscitate subsequent participants.</p>
+      </section>
+
+      <section class="section-block">
+        <h2 class="section-title">CASE ADDENDUM — DATED 09/17/199█</h2>
+        
+        <p>Investigation revealed that prior to his criminal activities, Josh J. Tarver worked as a certified electrical engineer. He was legally married to <span class="redacted">ELENA TARVER</span>, until a tragic incident on <span class="redacted">11</span>/29/199<span class="redacted">1</span> left him widowed and alone.</p>
+        
+        <p>Falling into a severe clinical depression, Tarver attempted suicide using a Remington 870 shotgun, but the chambered shell turned out to be a blank. Following the misfire, all suicidal attempts ceased.</p>
+        
+        <p>After purchasing a utility room on the upper level of the <span class="redacted">BLACKWATER</span> nightclub, Tarver retrofitted it into an isolated gaming chamber of his own engineering. With each match played, his physical appearance deteriorated drastically: he lost his eyes and several teeth, and his skull became severely deformed. However, the subject showed no signs of physical pain and continued hosting games unimpeded.</p>
+
+        <div class="inventory-box">
+          <h4>Search Warrant Inventory // Forensic Sweep</h4>
+          <ul class="inventory-list">
+            <li>Miscellaneous trash &amp; ash</li>
+            <li>Cigarettes (unfiltered)</li>
+            <li>Cans of "Volt Standard" beer</li>
+            <li>Used syringes (synthetic adrenaline)</li>
+            <li>Expired medication blister packs</li>
+            <li>Steel handcuffs</li>
+            <li>Hacksaw</li>
+            <li>Magnifying glass</li>
+            <li>Damaged cell phone</li>
+            <li>Makeshift electronic polarity-reversing device</li>
+          </ul>
+          <p style="margin-top: 12px; margin-bottom: 0; font-size: 0.88rem;"><em>Note: During interrogation, Tarver maintained that all seized items were merely "game props."</em></p>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2 class="section-title">FIELD REPORT — DATED ██/07/199█</h2>
+        
+        <p>Josh J. Tarver vanished without a trace in the middle of a match. According to the testimony of the sole surviving witness:</p>
+        
+        <blockquote class="witness-quote">
+          "That <span class="redacted">FUCKING</span> son of a bitch just vanished into thin air right in front of my eyes, <span class="redacted">MAN</span>! Just disappeared without a trace, like he melted into smoke!!!"
+        </blockquote>
+        
+        <p>Toxicology screening of the witness's blood revealed no traces of narcotics, psychotropics, or alcohol. Follow-up interrogations are ongoing.</p>
+        
+        <p>According to current intelligence, Tarver disappeared under unknown circumstances, leaving behind large sums of cash, personal identification, and his vehicle. The investigation remains active.</p>
+      </section>
+      <div class="evidence-qr-wrap">
+        <a href="tape_07.html" class="evidence-qr" title="Inspect Recovered Audio Log">
+          <img id="qrImage" src="" alt="Evidence QR">
+          <div class="qr-meta">
+            <strong>EVIDENCE #07-A</strong>
+            <span>RECOVERED AUDIO LOG</span>
+            <span style="opacity: 0.7; display: block; margin-top: 3px;">[SCAN OR CLICK TO ACCESS]</span>
+          </div>
+        </a>
+      </div>
+
+      <script>
+        // Автоматически формируем ссылку на tape_07.html на основе текущего адреса сайта
+        const tapeUrl = new URL('tape_07.html', window.location.href).href;
+        const qrImg = document.getElementById('qrImage');
+        qrImg.src = 'https://qrserver.com' + encodeURIComponent(tapeUrl);
+      </script>
+
+      <footer class="doc-footer">
+        <span>FORM 19-B // CONFIDENTIAL</span>
+        <span>HOVER OVER REDACTED BLOCKS TO INSPECT</span>
+        <span>PAGE 1 OF 1</span>
+      </footer>
+    </main>
+  </div>
+
+</body>
+</html>
+

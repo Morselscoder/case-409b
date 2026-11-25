@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUDIO LOG // UNIDENTIFIED RECORDING</title>
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #070708;
+      color: #b8b4ac;
+      font-family: 'Courier Prime', monospace;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px 20px;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.25) 0px,
+        rgba(0, 0, 0, 0.25) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, transparent 45%, #000 100%);
+      pointer-events: none;
+      z-index: 11;
+    }
+    .terminal {
+      width: 100%;
+      max-width: 720px;
+      border: 1px solid #262320;
+      background: rgba(14, 13, 13, 0.94);
+      padding: 40px 35px;
+      box-shadow: 0 0 60px rgba(138, 28, 28, 0.08);
+      position: relative;
+      z-index: 2;
+    }
+    .sys-header {
+      font-size: 0.78rem;
+      color: #5e5a54;
+      border-bottom: 1px solid #222;
+      padding-bottom: 14px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      letter-spacing: 1px;
+    }
+    .rec-dot {
+      color: #9e2a2b;
+      animation: blink 1.6s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.15; }
+    }
+    .dialogue {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    /* Единое правило скрытия и плавного появления для ВСЕХ реплик */
+    .line {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 1.5s ease, transform 1.5s ease;
+    }
+    .line.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    /* Цвет реплик Бога */
+    .god {
+      color: #e6d5b8;
+      text-shadow: 0 0 12px rgba(230, 213, 184, 0.25);
+    }
+    /* Цвет реплик Джоша */
+    .josh {
+      color: #827e77;
+      padding-left: 18px;
+      border-left: 1px solid #2e2c29;
+    }
+    .final-line {
+      margin-top: 12px;
+      color: #b53838;
+      font-family: 'Special Elite', cursive;
+      letter-spacing: 0.5px;
+    }
+    .controls {
+      margin-top: 40px;
+      padding-top: 18px;
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #5e5a54;
+    }
+    button {
+      background: transparent;
+      border: 1px solid #3d3934;
+      color: #9c968c;
+      font-family: 'Courier Prime', monospace;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      border-color: #9e2a2b;
+      color: #e0dcd3;
+    }
+  </style>
+</head>
+<body>
+  <main class="terminal">
+    <div class="sys-header">
+      <span>EVIDENCE TAPE #07 // RECOVERED AUDIO</span>
+      <span><span class="rec-dot">●</span> PLAYBACK</span>
+	      <div id="startOverlay" style="text-align: center; padding: 60px 0;">
+      <p style="color: #7d7a74; margin-bottom: 20px; font-size: 0.9rem;">MAGNETIC TAPE DETECTED // DURATION 00:36</p>
+      <button id="playTapeBtn" style="font-size: 1rem; padding: 12px 24px; border-color: #9e2a2b; color: #e6d5b8;">▶ PLAY RECORDING</button>
+    </div>
+    </div>
+
+    <div class="dialogue" style="display: none;">
+	
+      <p class="line god">— Hello, Joshua. Your wife asked me to check on you and see how you're doing.</p>
+      <p class="line josh">— ...</p>
+      <p class="line god">— You have doomed many mortals, and yet you remain unpunished... Tell me, my wayward son, does this bring you pleasure?</p>
+      <p class="line josh">— Please, these people wanted this themselves; they knew all the risks and consequences. I didn't destroy them—their own greed and pride did.</p>
+      <p class="line god">— Mortals have never interested me, yet today, it seems, is an exception.</p>
+      <p class="line josh">— Have a seat, we can talk about it.</p>
+      <p class="line god">— No, I want to understand humans—why they are so drawn to sin. Shall we play?</p>
+      <p class="line josh final-line">— Please sign the release of liability...</p>
+    </div>
+
+        <div class="controls">
+      <span id="status">AWAITING PLAYBACK...</span>
+      <div style="display: flex; gap: 10px;">
+        <button id="muteBtn">SOUND: ON</button>
+        <button id="revealBtn">SKIP / REVEAL ALL</button>
+      </div>
+    </div>
+
+  </main>
+
+    <script>
+    const allLines = document.querySelectorAll('.line');
+    const statusText = document.getElementById('status');
+    const revealBtn = document.getElementById('revealBtn');
+    const playTapeBtn = document.getElementById('playTapeBtn');
+    const startOverlay = document.getElementById('startOverlay');
+    const dialogueBox = document.querySelector('.dialogue');
+    const muteBtn = document.getElementById('muteBtn');
+    const timers = [];
+
+    let audioCtx = null;
+    let masterGain = null;
+    let isMuted = false;
+
+    // Генератор шума, гула и щелчков магнитной ленты
+    function startTapeAudio() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.18; // Общая комфортная громкость
+      masterGain.connect(audioCtx.destination);
+
+      // 1. Теплое шипение ленты (фильтрованный шум)
+      const bufferSize = audioCtx.sampleRate * 3;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const bandpass = audioCtx.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.value = 1100;
+      bandpass.Q.value = 0.7;
+
+      const hissGain = audioCtx.createGain();
+      hissGain.gain.value = 0.25;
+
+      whiteNoise.connect(bandpass);
+      bandpass.connect(hissGain);
+      hissGain.connect(masterGain);
+      whiteNoise.start();
+
+      // 2. Низкий гул мотора магнитофона (55 Гц)
+      const humOsc = audioCtx.createOscillator();
+      humOsc.type = 'sine';
+      humOsc.frequency.value = 55;
+      const humGain = audioCtx.createGain();
+      humGain.gain.value = 0.12;
+      humOsc.connect(humGain);
+      humGain.connect(masterGain);
+      humOsc.start();
+
+      // 3. Редкие щелчки и потрескивания старой кассеты
+      setInterval(() => {
+        if (!audioCtx || isMuted || Math.random() > 0.35) return;
+        const clickOsc = audioCtx.createOscillator();
+        const clickGain = audioCtx.createGain();
+        clickOsc.type = 'triangle';
+        clickOsc.frequency.setValueAtTime(120 + Math.random() * 300, audioCtx.currentTime);
+        clickGain.gain.setValueAtTime(0.08 * Math.random(), audioCtx.currentTime);
+        clickGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
+        clickOsc.connect(clickGain);
+        clickGain.connect(masterGain);
+        clickOsc.start();
+        clickOsc.stop(audioCtx.currentTime + 0.03);
+      }, 280);
+    }
+
+    // Запуск плёнки и диалога по кнопке
+    playTapeBtn.addEventListener('click', () => {
+      startOverlay.style.display = 'none';
+      dialogueBox.style.display = 'flex';
+      statusText.textContent = 'TRANSMISSION IN PROGRESS...';
+      startTapeAudio();
+
+      let currentTime = 1200;
+      allLines.forEach((item, idx) => {
+        const timer = setTimeout(() => {
+          item.classList.add('show');
+          if (idx === allLines.length - 1) {
+            statusText.textContent = 'END OF TAPE // SIGNAL LOST';
+          }
+        }, currentTime);
+        timers.push(timer);
+        currentTime += 4300;
+      });
+    });
+
+    // Кнопка вкл/выкл звука
+    muteBtn.addEventListener('click', () => {
+      if (!masterGain) return;
+      isMuted = !isMuted;
+      masterGain.gain.value = isMuted ? 0 : 0.18;
+      muteBtn.textContent = isMuted ? 'SOUND: OFF' : 'SOUND: ON';
+    });
+
+    // Пропуск анимации
+    revealBtn.addEventListener('click', () => {
+      timers.forEach(t => clearTimeout(t));
+      startOverlay.style.display = 'none';
+      dialogueBox.style.display = 'flex';
+      allLines.forEach(item => item.classList.add('show'));
+      statusText.textContent = 'END OF TAPE // SIGNAL LOST';
+    });
+  </script>
+
+</body>
+</html>
