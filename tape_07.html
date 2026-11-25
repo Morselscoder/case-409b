@@ -162,7 +162,7 @@
 
   </main>
 
-    <script>
+      <script>
     const allLines = document.querySelectorAll('.line');
     const statusText = document.getElementById('status');
     const revealBtn = document.getElementById('revealBtn');
@@ -175,16 +175,74 @@
     let audioCtx = null;
     let masterGain = null;
     let isMuted = false;
+    let crackleInterval = null;
+    let tapeStopped = false;
 
-    // Генератор шума, гула и щелчков магнитной ленты
+    // Тихий щелчок при появлении каждой реплики
+    function playTextTick() {
+      if (!audioCtx || isMuted || tapeStopped) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.035);
+      gain.gain.setValueAtTime(0.09, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.035);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.035);
+    }
+
+    // Механический щелчок кнопки STOP и выключение кассеты
+    function stopTapeWithClick() {
+      if (!audioCtx || tapeStopped) return;
+      tapeStopped = true;
+      clearInterval(crackleInterval);
+
+      if (!isMuted) {
+        const now = audioCtx.currentTime;
+        // Глухой удар механизма
+        const clunk = audioCtx.createOscillator();
+        const clunkGain = audioCtx.createGain();
+        clunk.type = 'square';
+        clunk.frequency.setValueAtTime(140, now);
+        clunk.frequency.exponentialRampToValueAtTime(32, now + 0.09);
+        clunkGain.gain.setValueAtTime(0.35, now);
+        clunkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        clunk.connect(clunkGain);
+        clunkGain.connect(audioCtx.destination);
+        clunk.start(now);
+        clunk.stop(now + 0.09);
+
+        // Высокий металлический щелчок клавиши
+        const snap = audioCtx.createOscillator();
+        const snapGain = audioCtx.createGain();
+        snap.type = 'triangle';
+        snap.frequency.setValueAtTime(1400, now + 0.015);
+        snap.frequency.exponentialRampToValueAtTime(220, now + 0.06);
+        snapGain.gain.setValueAtTime(0.25, now + 0.015);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        snap.connect(snapGain);
+        snapGain.connect(audioCtx.destination);
+        snap.start(now + 0.015);
+        snap.stop(now + 0.06);
+      }
+
+      // Полное отключение фонового шума ленты
+      masterGain.gain.setValueAtTime(0, audioCtx.currentTime + 0.05);
+      statusText.textContent = 'TAPE STOPPED // END OF RECORDING';
+    }
+
+    // Запуск фонового шума плёнки
     function startTapeAudio() {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.18; // Общая комфортная громкость
+      masterGain.gain.value = 0.18;
       masterGain.connect(audioCtx.destination);
 
-      // 1. Теплое шипение ленты (фильтрованный шум)
+      // Шипение ленты
       const bufferSize = audioCtx.sampleRate * 3;
       const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
       const output = noiseBuffer.getChannelData(0);
@@ -209,7 +267,7 @@
       hissGain.connect(masterGain);
       whiteNoise.start();
 
-      // 2. Низкий гул мотора магнитофона (55 Гц)
+      // Низкий гул мотора
       const humOsc = audioCtx.createOscillator();
       humOsc.type = 'sine';
       humOsc.frequency.value = 55;
@@ -219,9 +277,9 @@
       humGain.connect(masterGain);
       humOsc.start();
 
-      // 3. Редкие щелчки и потрескивания старой кассеты
-      setInterval(() => {
-        if (!audioCtx || isMuted || Math.random() > 0.35) return;
+      // Потрескивания
+      crackleInterval = setInterval(() => {
+        if (!audioCtx || isMuted || tapeStopped || Math.random() > 0.35) return;
         const clickOsc = audioCtx.createOscillator();
         const clickGain = audioCtx.createGain();
         clickOsc.type = 'triangle';
@@ -235,7 +293,7 @@
       }, 280);
     }
 
-    // Запуск плёнки и диалога по кнопке
+    // Старт воспроизведения
     playTapeBtn.addEventListener('click', () => {
       startOverlay.style.display = 'none';
       dialogueBox.style.display = 'flex';
@@ -246,8 +304,14 @@
       allLines.forEach((item, idx) => {
         const timer = setTimeout(() => {
           item.classList.add('show');
+          playTextTick();
+
           if (idx === allLines.length - 1) {
-            statusText.textContent = 'END OF TAPE // SIGNAL LOST';
+            // Через 2.6 секунды после последней реплики — щелчок STOP и тишина
+            const stopTimer = setTimeout(() => {
+              stopTapeWithClick();
+            }, 2600);
+            timers.push(stopTimer);
           }
         }, currentTime);
         timers.push(timer);
@@ -255,9 +319,9 @@
       });
     });
 
-    // Кнопка вкл/выкл звука
+    // Кнопка звука
     muteBtn.addEventListener('click', () => {
-      if (!masterGain) return;
+      if (!masterGain || tapeStopped) return;
       isMuted = !isMuted;
       masterGain.gain.value = isMuted ? 0 : 0.18;
       muteBtn.textContent = isMuted ? 'SOUND: OFF' : 'SOUND: ON';
@@ -269,9 +333,10 @@
       startOverlay.style.display = 'none';
       dialogueBox.style.display = 'flex';
       allLines.forEach(item => item.classList.add('show'));
-      statusText.textContent = 'END OF TAPE // SIGNAL LOST';
+      stopTapeWithClick();
     });
   </script>
+
 
 </body>
 </html>
