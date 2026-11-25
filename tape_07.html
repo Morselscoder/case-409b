@@ -265,7 +265,7 @@
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.18;
+      masterGain.gain.value = 0.07;
       masterGain.connect(audioCtx.destination);
 
       const bufferSize = audioCtx.sampleRate * 3;
